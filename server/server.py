@@ -1,27 +1,20 @@
 import os
 import socket
 import ssl
-import sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import HTTPServer, BaseHTTPRequestHandler
 
-server_cert = os.path.join(os.getcwd(), "certs", "server-cert.cer")
-server_key = os.path.join(os.getcwd(), "certs", "server-key.key")
-client_cert = os.path.join(os.getcwd(), "certs", "client-cert.cer")
-
-print("server_cert:", server_cert)
-print("server_key:", server_key)
-print("client_cert:", client_cert)
+CERT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "cert")
+SERVER_CRT = os.path.join(CERT_DIR, "server.crt")
+SERVER_KEY = os.path.join(CERT_DIR, "server.key")
+CA_CRT = os.path.join(CERT_DIR, "root-ca.crt")
 
 
-class RequestHandler(BaseHTTPRequestHandler):
-    def _writeheaders(self):
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):  # noqa
         self.send_response(200)
         self.send_header("Content-type", "text/plain")
         self.end_headers()
-
-    def do_GET(self):
-        self._writeheaders()
-        self.wfile.write("OK".encode("utf-8"))
+        self.wfile.write(b"Hello from HTTPS server!")
 
 
 def get_local_host() -> str:
@@ -35,23 +28,21 @@ def get_local_host() -> str:
         return "127.0.0.1"
 
 
-def main():
-    port = int(sys.argv[1]) if len(sys.argv) == 2 else 443
-    server_address = ("0.0.0.0", port)
-
-    server = HTTPServer(server_address, RequestHandler)  # type: ignore
+def run_server():
+    server_address = ("0.0.0.0", 443)
+    httpd = HTTPServer(server_address, Handler)  # noqa
 
     context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    context.load_cert_chain(certfile=server_cert, keyfile=server_key)
+    context.load_cert_chain(certfile=SERVER_CRT, keyfile=SERVER_KEY)
+    context.load_verify_locations(CA_CRT)
     context.verify_mode = ssl.CERT_REQUIRED
-    context.load_verify_locations(client_cert)
 
-    server.socket = context.wrap_socket(server.socket, server_side=True, do_handshake_on_connect=False)
-
+    httpd.socket = context.wrap_socket(httpd.socket, server_side=True)
     print(f"Starting server, listen at: {server_address[0]}:{server_address[1]}")
-    print(f"Access from LAN: https://{get_local_host()}:{server_address[1]}")
-    server.serve_forever()
+    print(f"Access from LAN: https://{get_local_host()}:{server_address[1]}/")
+    print(f"Server listening on https://www.example.com/")
+    httpd.serve_forever()
 
 
 if __name__ == "__main__":
-    main()
+    run_server()

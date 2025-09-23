@@ -69,6 +69,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/ssl_pinning_code_xml_or_file_xml_check" />
 
+            <Button
+                android:id="@+id/btn_https_two_way_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/https_two_way_check" />
+
             <Switch
                 android:id="@+id/sw_no_proxy"
                 android:layout_width="wrap_content"

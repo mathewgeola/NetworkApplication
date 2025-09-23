@@ -23,5 +23,11 @@
         </trust-anchors>
     </domain-config>
 
+    <domain-config>
+        <domain includeSubdomains="true">www.example.com</domain>
+        <trust-anchors>
+            <certificates src="@raw/www_example_com" />
+        </trust-anchors>
+    </domain-config>
 
 </network-security-config>
