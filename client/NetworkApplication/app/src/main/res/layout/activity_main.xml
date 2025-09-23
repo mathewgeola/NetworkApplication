@@ -40,6 +40,29 @@
                 android:layout_height="wrap_content"
                 android:text="@string/https_connect_system_cert_check" />
 
+            <EditText
+                android:id="@+id/et_pins_url"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:autofillHints="url"
+                android:hint="@string/pins_url"
+                android:inputType="textUri"
+                android:text="https://www.baidu.com/"
+                android:textAlignment="center"
+                tools:ignore="HardcodedText" />
+
+            <Button
+                android:id="@+id/btn_get_pins"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/get_pins" />
+
+            <Button
+                android:id="@+id/btn_ssl_pinning_code_or_file_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ssl_pinning_code_or_file_check" />
+
             <Switch
                 android:id="@+id/sw_no_proxy"
                 android:layout_width="wrap_content"

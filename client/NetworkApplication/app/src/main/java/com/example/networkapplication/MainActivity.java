@@ -4,8 +4,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.util.Base64;
 import android.util.Log;
-import android.view.View;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -15,9 +16,21 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.networkapplication.databinding.ActivityMainBinding;
 
-import java.io.IOException;
+import java.io.InputStream;
 import java.net.Proxy;
+import java.security.KeyStore;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
+import okhttp3.CertificatePinner;
+import okhttp3.Handshake;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -30,7 +43,9 @@ public class MainActivity extends AppCompatActivity {
 
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
-    private OkHttpClient client = new OkHttpClient();
+    private OkHttpClient okHttpClient = new OkHttpClient();
+
+    public static SSLContext sslContext = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void ToastText(String text) {
+        mainHandler.post(() -> Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show());
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -69,20 +88,18 @@ public class MainActivity extends AppCompatActivity {
          */
         binding.btnHttpConnect.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
-
-            OkHttpClient mClient = client.newBuilder().build();
-            Request request = new Request.Builder().url("http://httpbin.org/").build();
             Message message = new Message();
             message.what = 1;
-            try (Response response = mClient.newCall(request).execute()) {
-                String text = "http connect access httpbin.org success, return code:" + response.code();
+
+            Request request = new Request.Builder().url("http://httpbin.org/").build();
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                String text = "http connect access httpbin.org success, return code: " + response.code();
                 message.obj = text;
                 Log.d(TAG, text);
-            } catch (IOException e) {
-                String text = "http connect access httpbin.org failed";
+            } catch (Exception e) {
+                String text = "http connect access httpbin.org failed, e: " + e;
                 message.obj = text;
-                Log.d(TAG, text);
-                e.printStackTrace();
+                Log.e(TAG, text);
             }
 
             showAccessResult(message);
@@ -94,20 +111,19 @@ public class MainActivity extends AppCompatActivity {
          */
         binding.btnHttpsConnectIgnoreCertCheck.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
-
-            OkHttpClient mClient = client.newBuilder().sslSocketFactory(TrustAllManager.createSSLSocketFactory(), new TrustAllManager()).hostnameVerifier(new TrustAllManager.TrustAllHostnameVerifier()).build();
-            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectIgnoreCertCheck").build();
             Message message = new Message();
             message.what = 1;
-            try (Response response = mClient.newCall(request).execute()) {
-                String text = "https connect ignore cert check access www.baidu.com success, return code:" + response.code();
+
+            OkHttpClient client = okHttpClient.newBuilder().sslSocketFactory(TrustAllManager.createSSLSocketFactory(), new TrustAllManager()).hostnameVerifier(new TrustAllManager.TrustAllHostnameVerifier()).build();
+            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectIgnoreCertCheck").build();
+            try (Response response = client.newCall(request).execute()) {
+                String text = "https connect ignore cert check access www.baidu.com success, return code: " + response.code();
                 message.obj = text;
                 Log.d(TAG, text);
-            } catch (IOException e) {
-                String text = "https connect ignore cert check access www.baidu.com failed";
+            } catch (Exception e) {
+                String text = "https connect ignore cert check access www.baidu.com failed, e: " + e;
                 message.obj = text;
-                Log.d(TAG, text);
-                e.printStackTrace();
+                Log.e(TAG, text);
             }
 
             showAccessResult(message);
@@ -119,23 +135,105 @@ public class MainActivity extends AppCompatActivity {
          *
          * 默认证书链校验，只信任系统 CA (根证书)
          *
-         * Tips: OKHTTP 默认的 https 请求使用系统 CA 验证服务端证书（Android7.0以下还信任用户证书，Android7.0开始默认只信任系统证书）
+         * Tips: OKHTTP 默认的 https 请求使用系统 CA 验证服务端证书（Android 7.0 以下还信任用户证书，Android 7.0 开始默认只信任系统证书）
          */
         binding.btnHttpsConnectSystemCertCheck.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
-
-            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectSystemCertCheck").build();
             Message message = new Message();
             message.what = 1;
-            try (Response response = client.newCall(request).execute()) {
-                String text = "https connect system cert check access www.baidu.com success, return code:" + response.code();
+
+            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectSystemCertCheck").build();
+            try (Response response = okHttpClient.newCall(request).execute()) {
+                String text = "https connect system cert check access www.baidu.com success, return code: " + response.code();
                 message.obj = text;
                 Log.d(TAG, text);
-            } catch (IOException e) {
-                String text = "https connect system cert check access www.baidu.com failed";
+            } catch (Exception e) {
+                String text = "https connect system cert check access www.baidu.com failed, e: " + e;
+                message.obj = text;
+                Log.e(TAG, text);
+            }
+
+            showAccessResult(message);
+        }).start());
+
+
+        /*
+         * get pins
+         */
+        binding.btnGetPins.setOnClickListener(v -> {
+            new Thread(() -> {
+                String url = binding.etPinsUrl.getText().toString();
+                Request request = new Request.Builder().url(url).build();
+                try (Response response = okHttpClient.newCall(request).execute()) {
+                    Handshake handshake = response.handshake();
+                    if (handshake != null) {
+                        Certificate certificate = handshake.peerCertificates().get(0);
+                        if (certificate instanceof X509Certificate) {
+                            byte[] hash = MessageDigest.getInstance("SHA-256").digest(certificate.getPublicKey().getEncoded());
+                            String pins = "sha256/" + Base64.encodeToString(hash, Base64.NO_WRAP);
+                            String text = "get pins success, pins: " + pins;
+                            Log.d(TAG, text);
+                            ToastText(text);
+                        }
+                    }
+                } catch (Exception e) {
+                    String text = "get pins failed, e: " + e;
+                    Log.e(TAG, text);
+                    ToastText(text);
+                }
+            }).start();
+        });
+
+
+        /*
+         * ssl pinning code or file check
+         *
+         * 证书公钥绑定：验证证书公钥 baidu.com 使用 CertificatePinner
+         * 证书文件绑定：验证证书文件 bing.com  使用 SSLSocketFactory
+         */
+        binding.btnSslPinningCodeOrFileCheck.setOnClickListener(v -> new Thread(() -> {
+            showAccessResult(null);
+            Message message = new Message();
+            message.what = 1;
+
+            final String pattern = "www.baidu.com";
+            final String pins = "sha256/aqQ4L+Pac7Qy3Or7l6f9IypN8w1H64i48B4weiXJ2v4=";
+            CertificatePinner certificatePinner = new CertificatePinner.Builder().add(pattern, pins).build();
+            OkHttpClient client1 = okHttpClient.newBuilder().certificatePinner(certificatePinner).build();
+            Request request1 = new Request.Builder().url("https://www.baidu.com/s?wd=SslPinningCodeCheck").build();
+            try (Response response1 = client1.newCall(request1).execute()) {
+                String text = "ssl pinning code check access www.baidu.com success, return code: " + response1.code();
                 message.obj = text;
                 Log.d(TAG, text);
-                e.printStackTrace();
+            } catch (Exception e) {
+                String text = "ssl pinning code check access www.baidu.com failed, e: " + e;
+                message.obj = text;
+                Log.d(TAG, text);
+            }
+
+
+            try {
+                InputStream is = getApplicationContext().getResources().openRawResource(R.raw.cn_bing_com);
+                Certificate certificate = CertificateFactory.getInstance("X.509").generateCertificate(is);
+                KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                keyStore.load(null, null);
+                keyStore.setCertificateEntry("certificate", certificate);
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                trustManagerFactory.init(keyStore);
+                sslContext = SSLContext.getInstance("TLS");
+                sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
+
+                OkHttpClient client2 = okHttpClient.newBuilder().sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagerFactory.getTrustManagers()[0]).build();
+                Request request2 = new Request.Builder().url("https://cn.bing.com/search?q=SslPinningFileCheck").build();
+                Response response2 = client2.newCall(request2).execute();
+                String text = "ssl pinning file check access cn.bing.com success, return code: " + response2.code();
+                message.obj += "\n" + text;
+                Log.d(TAG, text);
+                response2.close();
+            } catch (Exception e) {
+                String text = "ssl pinning file check access cn.bing.com failed, e: " + e;
+                message.obj += "\n" + text;
+                Log.d(TAG, text);
             }
 
             showAccessResult(message);
@@ -149,9 +247,9 @@ public class MainActivity extends AppCompatActivity {
          */
         binding.swNoProxy.setOnCheckedChangeListener((buttonView, isChecked) -> {
             if (isChecked) {
-                client = new OkHttpClient().newBuilder().proxy(Proxy.NO_PROXY).build();
+                okHttpClient = new OkHttpClient().newBuilder().proxy(Proxy.NO_PROXY).build();
             } else {
-                client = new OkHttpClient();
+                okHttpClient = new OkHttpClient();
             }
         });
     }

@@ -3,6 +3,9 @@
     <string name="http_connect">http connect</string>
     <string name="https_connect_ignore_cert_check">https connect ignore cert check</string>
     <string name="https_connect_system_cert_check">https connect system cert check</string>
+    <string name="pins_url">pins url</string>
+    <string name="get_pins">get pins</string>
+    <string name="ssl_pinning_code_or_file_check">ssl pinning code or file check</string>
     <string name="no_proxy">no proxy</string>
     <string name="access_result">access result</string>
 </resources>
