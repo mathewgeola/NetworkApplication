@@ -89,6 +89,31 @@ public class MainActivity extends AppCompatActivity {
 
 
         /*
+         * https connect ignore cert check
+         */
+        binding.btnHttpsConnectIgnoreCertCheck.setOnClickListener(v -> new Thread(() -> {
+            showAccessResult(null);
+
+            OkHttpClient mClient = client.newBuilder().sslSocketFactory(TrustAllManager.createSSLSocketFactory(), new TrustAllManager()).hostnameVerifier(new TrustAllManager.TrustAllHostnameVerifier()).build();
+            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectIgnoreCertCheck").build();
+            Message message = new Message();
+            message.what = 1;
+            try (Response response = mClient.newCall(request).execute()) {
+                String text = "https connect ignore cert check access www.baidu.com success, return code:" + response.code();
+                message.obj = text;
+                Log.d(TAG, text);
+            } catch (IOException e) {
+                String text = "https connect ignore cert check access www.baidu.com failed";
+                message.obj = text;
+                Log.d(TAG, text);
+                e.printStackTrace();
+            }
+
+            showAccessResult(message);
+        }).start());
+
+
+        /*
          * no_proxy
          *
          * 目前仅限 OkHttp 发出的请求
