@@ -2,6 +2,7 @@
     <string name="app_name">NetworkApplication</string>
     <string name="http_connect">http connect</string>
     <string name="https_connect_ignore_cert_check">https connect ignore cert check</string>
+    <string name="https_connect_system_cert_check">https connect system cert check</string>
     <string name="no_proxy">no proxy</string>
     <string name="access_result">access result</string>
 </resources>

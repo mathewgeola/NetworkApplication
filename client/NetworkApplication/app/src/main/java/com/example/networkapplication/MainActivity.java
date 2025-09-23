@@ -5,6 +5,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -104,6 +105,34 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, text);
             } catch (IOException e) {
                 String text = "https connect ignore cert check access www.baidu.com failed";
+                message.obj = text;
+                Log.d(TAG, text);
+                e.printStackTrace();
+            }
+
+            showAccessResult(message);
+        }).start());
+
+
+        /*
+         * https connect system cert check
+         *
+         * 默认证书链校验，只信任系统 CA (根证书)
+         *
+         * Tips: OKHTTP 默认的 https 请求使用系统 CA 验证服务端证书（Android7.0以下还信任用户证书，Android7.0开始默认只信任系统证书）
+         */
+        binding.btnHttpsConnectSystemCertCheck.setOnClickListener(v -> new Thread(() -> {
+            showAccessResult(null);
+
+            Request request = new Request.Builder().url("https://www.baidu.com/s?wd=HttpsConnectSystemCertCheck").build();
+            Message message = new Message();
+            message.what = 1;
+            try (Response response = client.newCall(request).execute()) {
+                String text = "https connect system cert check access www.baidu.com success, return code:" + response.code();
+                message.obj = text;
+                Log.d(TAG, text);
+            } catch (IOException e) {
+                String text = "https connect system cert check access www.baidu.com failed";
                 message.obj = text;
                 Log.d(TAG, text);
                 e.printStackTrace();
