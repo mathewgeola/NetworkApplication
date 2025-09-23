@@ -1,4 +1,5 @@
 import os
+import socket
 import ssl
 import sys
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -23,6 +24,17 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write("OK".encode("utf-8"))
 
 
+def get_local_host() -> str:
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        host = s.getsockname()[0]
+        s.close()
+        return host
+    except Exception:  # noqa
+        return "127.0.0.1"
+
+
 def main():
     port = int(sys.argv[1]) if len(sys.argv) == 2 else 443
     server_address = ("0.0.0.0", port)
@@ -37,6 +49,7 @@ def main():
     server.socket = context.wrap_socket(server.socket, server_side=True, do_handshake_on_connect=False)
 
     print(f"Starting server, listen at: {server_address[0]}:{server_address[1]}")
+    print(f"Access from LAN: https://{get_local_host()}:{server_address[1]}")
     server.serve_forever()
 
 
