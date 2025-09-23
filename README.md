@@ -1,11 +1,21 @@
 # NetworkApplication
 
+~~~shell
+$ openssl s_client -connect www.baidu.com:443 -servername www.baidu.com | openssl x509 -pubkey -noout | openssl rsa -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
+
+
+$ cd app/src/main/res/raw/
+$ openssl s_client -connect cn.bing.com:443 -servername cn.bing.com | openssl x509 -out cn_bing_com.pem
+
+
+$ openssl s_client -connect www.zhihu.com:443 -servername www.zhihu.com | openssl x509 -pubkey -noout | openssl rsa -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
+
+
+$ cd app/src/main/res/raw/
+$ openssl s_client -connect www.sogou.com:443 -servername www.sogou.com | openssl x509 -out www_sogou_com.pem
+
 ~~~
-> openssl s_client -connect www.baidu.com:443 -servername www.baidu.com | openssl x509 -pubkey -noout | openssl rsa -pubin -outform der | openssl dgst -sha256 -binary | openssl enc -base64
 
-
-> cd .\app\src\main\res\raw
-> openssl s_client -connect cn.bing.com:443 -servername cn.bing.com | openssl x509 -out cn_bing_com.pem
-
-
+~~~shell
+C:\WINDOWS\system32> netsh advfirewall set allprofiles state off
 ~~~

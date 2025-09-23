@@ -6,6 +6,7 @@
     <string name="pins_url">pins url</string>
     <string name="get_pins">get pins</string>
     <string name="ssl_pinning_code_or_file_check">ssl pinning code or file check</string>
+    <string name="ssl_pinning_code_xml_or_file_xml_check">ssl pinning code xml or file xml check</string>
     <string name="no_proxy">no proxy</string>
     <string name="access_result">access result</string>
 </resources>

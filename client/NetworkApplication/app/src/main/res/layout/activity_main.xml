@@ -63,6 +63,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/ssl_pinning_code_or_file_check" />
 
+            <Button
+                android:id="@+id/btn_ssl_pinning_code_xml_or_file_xml_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ssl_pinning_code_xml_or_file_xml_check" />
+
             <Switch
                 android:id="@+id/sw_no_proxy"
                 android:layout_width="wrap_content"
@@ -73,10 +79,10 @@
             <TextView
                 android:id="@+id/tv_access_result"
                 android:layout_width="400dp"
-                android:layout_height="50dp"
+                android:layout_height="300dp"
                 android:layout_margin="10dp"
+                android:padding="20dp"
                 android:text="@string/access_result"
-                android:textAlignment="center"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 

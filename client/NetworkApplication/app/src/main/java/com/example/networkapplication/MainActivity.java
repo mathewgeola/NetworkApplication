@@ -241,6 +241,45 @@ public class MainActivity extends AppCompatActivity {
 
 
         /*
+         * ssl pinning code xml or file xml check
+         *
+         * 证书绑定验证 配置在 @xml/network_security_config 中
+         * sogou.com 使用 sogou.pem 验证证书
+         * so.com 使用 sha256 key 验证
+         */
+        binding.btnSslPinningCodeXmlOrFileXmlCheck.setOnClickListener(v -> new Thread(() -> {
+            showAccessResult(null);
+            Message message = new Message();
+            message.what = 1;
+
+            Request request1 = new Request.Builder().url("https://www.zhihu.com/").build();
+            try (Response response1 = okHttpClient.newCall(request1).execute()) {
+                String text = "ssl pinning code xml check access www.zhihu.com success, return code: " + response1.code();
+                message.obj = text;
+                Log.d(TAG, text);
+            } catch (Exception e) {
+                String text = "ssl pinning code xml check access www.zhihu.com failed, e: " + e;
+                message.obj = text;
+                Log.d(TAG, text);
+            }
+
+            Request request2 = new Request.Builder().url("https://www.sogou.com/web?query=SslPinningFileXmlCheck").build();
+            try (Response response2 = okHttpClient.newCall(request2).execute()) {
+                String text = "ssl pinning file xml check access www.sogou.com success, return code: " + response2.code();
+                message.obj += "\n" + text;
+                Log.d(TAG, text);
+            } catch (Exception e) {
+                String text = "ssl pinning file xml check access www.sogou.com failed, e: " + e;
+                message.obj += "\n" + text;
+                Log.d(TAG, text);
+            }
+
+            showAccessResult(message);
+        }).start());
+
+
+
+        /*
          * no_proxy
          *
          * 目前仅限 OkHttp 发出的请求
