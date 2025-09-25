@@ -105,6 +105,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/webview_system_cert_check" />
 
+            <Button
+                android:id="@+id/btn_webview_ssl_pinning"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/webview_ssl_pinning" />
+
             <WebView
                 android:id="@+id/wv"
                 android:layout_width="match_parent"

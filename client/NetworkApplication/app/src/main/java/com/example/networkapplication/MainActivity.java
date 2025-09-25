@@ -8,7 +8,6 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
-import android.view.View;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -32,6 +31,7 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Random;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -52,11 +52,10 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     private OkHttpClient okHttpClient = new OkHttpClient();
 
-    public static SSLContext sslContext = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,20 +76,20 @@ public class MainActivity extends AppCompatActivity {
 
     private void showAccessResult(Message message) {
         if (message == null) {
-            mainHandler.post(() -> binding.tvAccessResult.setText(""));
+            handler.post(() -> binding.tvAccessResult.setText(""));
         } else {
-            mainHandler.post(() -> binding.tvAccessResult.setText((CharSequence) message.obj));
+            handler.post(() -> binding.tvAccessResult.setText((CharSequence) message.obj));
         }
     }
 
     private void ToastText(String text) {
-        mainHandler.post(() -> Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show());
+        handler.post(() -> Toast.makeText(MainActivity.this, text, Toast.LENGTH_SHORT).show());
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        mainHandler.removeCallbacksAndMessages(null);
+        handler.removeCallbacksAndMessages(null);
     }
 
     private void initView() {
@@ -118,9 +117,10 @@ public class MainActivity extends AppCompatActivity {
             showAccessResult(message);
         }).start());
 
-
         /*
          * https connect ignore cert check
+         *
+         * 忽略证书验证
          */
         binding.btnHttpsConnectIgnoreCertCheck.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
 
             showAccessResult(message);
         }).start());
-
 
         /*
          * https connect system cert check
@@ -172,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
 
             showAccessResult(message);
         }).start());
-
 
         /*
          * get pins
@@ -203,12 +201,11 @@ public class MainActivity extends AppCompatActivity {
             }).start();
         });
 
-
         /*
          * ssl pinning code or file check
          *
-         * 证书公钥绑定：验证证书公钥 baidu.com 使用 CertificatePinner
-         * 证书文件绑定：验证证书文件 bing.com  使用 SSLSocketFactory
+         * 证书公钥绑定：验证证书公钥 www.baidu.com 使用 CertificatePinner
+         * 证书文件绑定：验证证书文件 cn.bing.com  使用 SSLSocketFactory
          */
         binding.btnSslPinningCodeOrFileCheck.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
@@ -236,12 +233,14 @@ public class MainActivity extends AppCompatActivity {
             try {
                 InputStream is = getApplicationContext().getResources().openRawResource(R.raw.cn_bing_com);
                 Certificate certificate = CertificateFactory.getInstance("X.509").generateCertificate(is);
+
                 KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
                 keyStore.load(null, null);
                 keyStore.setCertificateEntry("certificate", certificate);
+
                 TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
                 trustManagerFactory.init(keyStore);
-                sslContext = SSLContext.getInstance("TLS");
+                SSLContext sslContext = SSLContext.getInstance("TLS");
                 sslContext.init(null, trustManagerFactory.getTrustManagers(), new SecureRandom());
 
                 OkHttpClient client2 = okHttpClient.newBuilder().sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustManagerFactory.getTrustManagers()[0]).build();
@@ -260,13 +259,12 @@ public class MainActivity extends AppCompatActivity {
             showAccessResult(message);
         }).start());
 
-
         /*
          * ssl pinning code xml or file xml check
          *
          * 证书绑定验证 配置在 @xml/network_security_config 中
          * www.zhihu.com 使用 pins 验证
-         * www.sogou.com 使用 www_sogou_com_pem 验证证书
+         * www.sogou.com 使用 www_sogou_com.pem 验证证书
          */
         binding.btnSslPinningCodeXmlOrFileXmlCheck.setOnClickListener(v -> new Thread(() -> {
             showAccessResult(null);
@@ -301,9 +299,6 @@ public class MainActivity extends AppCompatActivity {
 
             showAccessResult(message);
         }).start());
-
-
-
 
         /*
          * https two way check
@@ -357,7 +352,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         /*
          * webview ignore cert check
          *
@@ -379,12 +373,27 @@ public class MainActivity extends AppCompatActivity {
             CustomWebViewClient customWebViewClient = new CustomWebViewClient();
             customWebViewClient.setCheckflag("checkCerts");
             binding.wv.setWebViewClient(customWebViewClient);
-            binding.wv.loadUrl("https://www.qq.com/?q=WebviewSystemCertCheck");
+            binding.wv.loadUrl("https://www.qq.com/");
         });
 
+        /*
+         * webview ssl pinning
+         * 通过 network_security_config.xml 中定义的证书和密钥进行绑定
+         */
+        binding.btnWebviewSslPinning.setOnClickListener(v -> {
+            CustomWebViewClient customWebViewClient = new CustomWebViewClient();
+            customWebViewClient.setCheckflag("checkCerts");
+            binding.wv.setWebViewClient(customWebViewClient);
 
+            Random random = new Random();
+            int num = random.nextInt(2);
+            if (num == 0) {
+                binding.wv.loadUrl("https://www.sogou.com/web?query=WebviewSslPinningFileXmlCheck"); // 证书文件校验
+            } else {
+                binding.wv.loadUrl("https://www.zhihu.com/"); // 证书公钥校验
+            }
+        });
     }
-
 
     private class CustomWebViewClient extends WebViewClient {
         private String checkflag = "checkCerts"; // 是否忽略证书校验

@@ -51,3 +51,9 @@ OpenSSL 3.5.2 5 Aug 2025 (Library: OpenSSL 3.5.2 5 Aug 2025)
 >taskkill /PID 31956 /F
 成功: 已终止 PID 为 31956 的进程。
 ~~~
+
+## 发布
+
+~~~shell
+> build_release.bat
+~~~

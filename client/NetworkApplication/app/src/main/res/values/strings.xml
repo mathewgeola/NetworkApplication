@@ -12,4 +12,5 @@
     <string name="access_result">access result</string>
     <string name="webview_ignore_cert_check">webview ignore cert check</string>
     <string name="webview_system_cert_check">webview system cert check</string>
+    <string name="webview_ssl_pinning">webview ssl pinning</string>
 </resources>

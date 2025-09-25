@@ -11,15 +11,15 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
 
 public class ClientSSLSocketFactory {
-    private static final String KEY_STORE_PASSWORD = "password";
+    private static final String password = "password";
 
     public static SSLSocketFactory getSocketFactory(Context context) {
         try (InputStream is = context.getResources().getAssets().open("client.p12");) {
             SSLContext sslContext = SSLContext.getInstance("TLS");
             KeyStore keyStore = KeyStore.getInstance("PKCS12");
-            keyStore.load(is, KEY_STORE_PASSWORD.toCharArray());
+            keyStore.load(is, password.toCharArray());
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, KEY_STORE_PASSWORD.toCharArray());
+            keyManagerFactory.init(keyStore, password.toCharArray());
             sslContext.init(keyManagerFactory.getKeyManagers(), null, new SecureRandom());
             return sslContext.getSocketFactory();
         } catch (Exception e) {
