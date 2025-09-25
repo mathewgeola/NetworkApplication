@@ -75,6 +75,12 @@
                 android:layout_height="wrap_content"
                 android:text="@string/https_two_way_check" />
 
+            <Button
+                android:id="@+id/btn_webview_ignore_cert_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/webview_ignore_cert_check" />
+
             <Switch
                 android:id="@+id/sw_no_proxy"
                 android:layout_width="wrap_content"
@@ -91,6 +97,13 @@
                 android:text="@string/access_result"
                 android:textSize="12sp"
                 android:textStyle="bold" />
+
+
+            <WebView
+                android:id="@+id/wv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:ignore="WebViewLayout" />
 
         </LinearLayout>
 

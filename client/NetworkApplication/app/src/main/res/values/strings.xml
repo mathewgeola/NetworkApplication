@@ -8,6 +8,7 @@
     <string name="ssl_pinning_code_or_file_check">ssl pinning code or file check</string>
     <string name="ssl_pinning_code_xml_or_file_xml_check">ssl pinning code xml or file xml check</string>
     <string name="https_two_way_check">https two way check</string>
+    <string name="webview_ignore_cert_check">webview ignore cert check</string>
     <string name="no_proxy">no proxy</string>
     <string name="access_result">access result</string>
 </resources>

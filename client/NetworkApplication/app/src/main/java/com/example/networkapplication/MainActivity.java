@@ -1,12 +1,16 @@
 package com.example.networkapplication;
 
+import android.annotation.SuppressLint;
+import android.net.http.SslError;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
-import android.view.View;
+import android.webkit.SslErrorHandler;
+import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -17,7 +21,6 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.networkapplication.databinding.ActivityMainBinding;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.Proxy;
 import java.security.KeyStore;
@@ -32,7 +35,6 @@ import java.util.Objects;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -342,6 +344,18 @@ public class MainActivity extends AppCompatActivity {
         }).start());
 
 
+        /*
+         * webview ignore cert check
+         *
+         * WebView 不进行证书校验
+         */
+        binding.btnWebviewIgnoreCertCheck.setOnClickListener(v -> {
+            CustomWebViewClient customWebViewClient = new CustomWebViewClient();
+            customWebViewClient.setCheckflag("trustAllCerts");
+            binding.wv.setWebViewClient(customWebViewClient);
+            binding.wv.loadUrl("https://www.baidu.com/s?wd=WebviewIgnoreCertCheck");
+        });
+
 
         /*
          * no_proxy
@@ -357,4 +371,24 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+    private class CustomWebViewClient extends WebViewClient {
+        private String checkflag = "checkCerts"; // 是否忽略证书校验
+
+        public void setCheckflag(String checkflag) {
+            this.checkflag = checkflag;
+        }
+
+        @SuppressLint("WebViewClientOnReceivedSslError")
+        @Override
+        public void onReceivedSslError(WebView view, SslErrorHandler handler, SslError error) {
+            Log.d(TAG, "onReceivedSslError: " + view);
+            if ("trustAllCerts".equals(checkflag)) {
+                handler.proceed();
+            } else {
+                handler.cancel();
+                Toast.makeText(MainActivity.this, "证书异常，停止访问", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
 }

@@ -1,5 +1,15 @@
 # NetworkApplication
 
+## 手机
+
+~~~
+设备名称
+Pixel 5
+
+Android 版本
+11
+~~~
+
 ## 证书命令
 
 ~~~shell
@@ -30,7 +40,14 @@ C:\WINDOWS\system32> netsh advfirewall set allprofiles state off
 > openssl -v 
 OpenSSL 3.5.2 5 Aug 2025 (Library: OpenSSL 3.5.2 5 Aug 2025)
 
-# 电脑 修改 hosts 文件 -> 添加 127.0.0.1 www.example.com (结尾必须加个换行) -> 运行 server.py (python data/server.cmd)
+# 电脑 修改 hosts 文件 -> 添加 127.0.0.1 www.example.com (结尾必须加个换行) -> 运行 server.py (data/server.cmd)
 
 # 手机 Magisk -> 安装 Systemless Hosts 17.2 模块 (data/hosts_17.2.zip) -> 重启手机 -> 修改 /system/etc/hosts -> 添加 192.168.3.150 www.example.com (结尾必须加个换行，192.168.3.150 为电脑的局域网 ip 地址)
+
+# 如果手机无法正常访问服务，可以尝试杀死 443 端口程序，再重启服务
+>netstat -ano | findstr :443
+  TCP    0.0.0.0:443            0.0.0.0:0              LISTENING       31956
+  
+>taskkill /PID 31956 /F
+成功: 已终止 PID 为 31956 的进程。
 ~~~
