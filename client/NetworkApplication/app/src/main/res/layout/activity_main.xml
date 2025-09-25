@@ -75,11 +75,6 @@
                 android:layout_height="wrap_content"
                 android:text="@string/https_two_way_check" />
 
-            <Button
-                android:id="@+id/btn_webview_ignore_cert_check"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/webview_ignore_cert_check" />
 
             <Switch
                 android:id="@+id/sw_no_proxy"
@@ -91,18 +86,30 @@
             <TextView
                 android:id="@+id/tv_access_result"
                 android:layout_width="400dp"
-                android:layout_height="300dp"
+                android:layout_height="200dp"
                 android:layout_margin="10dp"
                 android:padding="20dp"
                 android:text="@string/access_result"
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
+            <Button
+                android:id="@+id/btn_webview_ignore_cert_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/webview_ignore_cert_check" />
+
+            <Button
+                android:id="@+id/btn_webview_system_cert_check"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/webview_system_cert_check" />
 
             <WebView
                 android:id="@+id/wv"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="10dp"
                 tools:ignore="WebViewLayout" />
 
         </LinearLayout>

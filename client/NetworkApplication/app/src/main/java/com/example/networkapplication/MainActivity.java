@@ -8,6 +8,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Base64;
 import android.util.Log;
+import android.view.View;
 import android.webkit.SslErrorHandler;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -343,6 +344,19 @@ public class MainActivity extends AppCompatActivity {
             showAccessResult(message);
         }).start());
 
+        /*
+         * no_proxy
+         *
+         * 目前仅限 OkHttp 发出的请求
+         */
+        binding.swNoProxy.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            if (isChecked) {
+                okHttpClient = new OkHttpClient().newBuilder().proxy(Proxy.NO_PROXY).build();
+            } else {
+                okHttpClient = new OkHttpClient();
+            }
+        });
+
 
         /*
          * webview ignore cert check
@@ -356,19 +370,19 @@ public class MainActivity extends AppCompatActivity {
             binding.wv.loadUrl("https://www.baidu.com/s?wd=WebviewIgnoreCertCheck");
         });
 
-
         /*
-         * no_proxy
+         * webview system cert check
          *
-         * 目前仅限 OkHttp 发出的请求
+         * WebView 使用系统证书校验
          */
-        binding.swNoProxy.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            if (isChecked) {
-                okHttpClient = new OkHttpClient().newBuilder().proxy(Proxy.NO_PROXY).build();
-            } else {
-                okHttpClient = new OkHttpClient();
-            }
+        binding.btnWebviewSystemCertCheck.setOnClickListener(v -> {
+            CustomWebViewClient customWebViewClient = new CustomWebViewClient();
+            customWebViewClient.setCheckflag("checkCerts");
+            binding.wv.setWebViewClient(customWebViewClient);
+            binding.wv.loadUrl("https://www.qq.com/?q=WebviewSystemCertCheck");
         });
+
+
     }
 
 
